@@ -41,8 +41,8 @@ app.use(
   })
 );
 
-// Explicitly handle preflight OPTIONS requests
-app.options("*", cors());
+// Explicitly handle preflight OPTIONS requests (regex avoids Express 5 path-to-regexp issue with "*")
+app.options(/.*/, cors());
 
 /* ---------------- MIDDLEWARE ---------------- */
 app.use(express.json());
