@@ -3,8 +3,6 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import connectDB from "../config/db.js";
 import cafeStatusRoutes from "../routes/cafeStatusRoutes.js";
@@ -15,48 +13,63 @@ import tableRoutes from "../routes/tableRoutes.js";
 import orderRoutes from "../routes/orderRoutes.js";
 import taxRoutes from "../routes/taxRoutes.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
 
 /* ---------------- CORS ---------------- */
-
+// Allow all origins in development; restrict in production via env var
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "https://neon-cat-e75f45.netlify.app",
   process.env.FRONTEND_URL,
-];
+].filter(Boolean); // remove undefined/null values
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (e.g. curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("CORS not allowed"));
+        callback(new Error(`CORS blocked: ${origin}`));
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "x-auth-token", "Authorization"],
   })
 );
 
-/* ---------------- MIDDLEWARE ---------------- */
+// Explicitly handle preflight OPTIONS requests
+app.options("*", cors());
 
+/* ---------------- MIDDLEWARE ---------------- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ---------------- STATIC ---------------- */
+/* ---------------- DATABASE (lazy connect — safe for serverless) ---------------- */
+let isConnected = false;
 
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+const connectIfNeeded = async () => {
+  if (!isConnected) {
+    await connectDB();
+    isConnected = true;
+  }
+};
 
-/* ---------------- DB ---------------- */
-
-connectDB();
+// Connect DB before handling any request
+app.use(async (req, res, next) => {
+  try {
+    await connectIfNeeded();
+    next();
+  } catch (err) {
+    console.error("❌ DB connection failed:", err.message);
+    res.status(500).json({ message: "Database connection error" });
+  }
+});
 
 /* ---------------- ROUTES ---------------- */
-
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/items", itemRoutes);
@@ -65,13 +78,10 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/taxes", taxRoutes);
 app.use("/api/cafe-status", cafeStatusRoutes);
 
-/* ---------------- ROOT ---------------- */
-
+/* ---------------- HEALTH CHECK ---------------- */
 app.get("/", (req, res) => {
-  res.send("🚀 Restaurant API Running");
+  res.json({ status: "ok", message: "🚀 Restaurant API Running" });
 });
 
-/* ❌ REMOVE app.listen */
-/* ✅ EXPORT INSTEAD */
-
+/* ---------------- EXPORT for Vercel ---------------- */
 export default app;
