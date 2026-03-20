@@ -83,7 +83,7 @@ const OrderSchema = new mongoose.Schema(
 );
 
 // Pre-save hook for order number and default statuses
-OrderSchema.pre("save", function () {
+OrderSchema.pre("save", function (next) {
   // 1️⃣ Generate order number if not present
   if (!this.orderNumber) {
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -103,6 +103,8 @@ OrderSchema.pre("save", function () {
     if (!this.status) this.status = "pending";
     if (!this.paymentStatus) this.paymentStatus = "pending";
   }
+
+  next();
 });
 
 const Order = mongoose.model("Order", OrderSchema);

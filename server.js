@@ -25,6 +25,7 @@ const app = express();
 const allowedOrigins = [
   "https://neon-cat-e75f45.netlify.app",
   "http://localhost:5173", // Vite
+  "http://localhost:5174", // Vite (fallback port)
   "http://localhost:3000", // React CRA
   process.env.FRONTEND_URL,
 ];
