@@ -1,5 +1,4 @@
-// models/CafeStatus.js
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const cafeStatusSchema = new mongoose.Schema({
   isOnline: {
@@ -8,16 +7,15 @@ const cafeStatusSchema = new mongoose.Schema({
   },
   message: {
     type: String,
-    default: "We're open! Place your order now."
+    required: true,
+    trim: true,
+    maxlength: 200
   },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    ref: 'User',
+    required: true
   }
 }, { timestamps: true });
 
-export default mongoose.model("CafeStatus", cafeStatusSchema);
+export default mongoose.model('CafeStatus', cafeStatusSchema);
