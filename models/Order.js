@@ -1,4 +1,6 @@
+// Mongoose Order Model - Mongoose v9+ compatible (no next parameter in hooks)
 import mongoose from "mongoose";
+
 
 const OrderSchema = new mongoose.Schema(
   {
