@@ -65,12 +65,13 @@ export const createOrder = async (req,res)=>
 {
   try
   {
-    const { customerName, items } = req.body;
+    const { customerName, items, totalAmount, paymentMethod } = req.body;
 
-    if(!customerName || !items || items.length===0)
+    if(!customerName || !items || items.length===0 || totalAmount === undefined || !paymentMethod)
     {
       return res.status(400).json({
-        message:"Customer name and items required"
+        success: false,
+        message:"Customer name, items, total amount, and payment method are required."
       });
     }
 
@@ -99,7 +100,7 @@ export const createOrder = async (req,res)=>
   }
   catch(err)
   {
-    res.status(500).json({message:err.message});
+    res.status(500).json({ success: false, message:err.message});
   }
 };
 
