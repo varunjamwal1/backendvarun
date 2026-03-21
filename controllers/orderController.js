@@ -156,13 +156,15 @@ export const approveOrder = async (req, res) => {
       });
     }
 
-    order.status = "approved";
-
-    await order.save();
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { status: "approved" },
+      { new: true }
+    );
 
     res.json({
       message: "Order approved successfully",
-      order
+      order: updatedOrder
     });
 
   } catch (error) {
@@ -184,18 +186,14 @@ export const updateOrderStatus = async (req,res)=>
   {
     const { status } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    const updatedOrder = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
 
-    if(!order)
+    if(!updatedOrder)
       return res.status(404).json({message:"Order not found"});
-
-    order.status = status;
-
-    await order.save();
 
     res.json({
       message:"Order updated",
-      order
+      order: updatedOrder
     });
   }
   catch(err)
@@ -210,18 +208,14 @@ export const cancelOrder = async (req,res)=>
 {
   try
   {
-    const order = await Order.findById(req.params.id);
+    const updatedOrder = await Order.findByIdAndUpdate(req.params.id, { status: "cancelled" }, { new: true });
 
-    if(!order)
+    if(!updatedOrder)
       return res.status(404).json({message:"Order not found"});
-
-    order.status = "cancelled";
-
-    await order.save();
 
     res.json({
       message:"Order cancelled",
-      order
+      order: updatedOrder
     });
   }
   catch(err)
@@ -287,15 +281,15 @@ export const completeOrder = async (req, res) => {
     }
 
     // Update order
-    order.status = "completed";
-    order.paymentStatus = "paid";
-    order.completedAt = new Date();
-
-    await order.save();
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { status: "completed", paymentStatus: "paid", completedAt: new Date() },
+      { new: true }
+    );
 
     res.json({
       message: "Order completed successfully",
-      order
+      order: updatedOrder
     });
 
   } catch (error) {

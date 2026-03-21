@@ -22,8 +22,15 @@ async function test() {
       paymentStatus: "pending"
     };
     
+    console.log("Creating...");
     const o = await Order.create(orderData);
-    console.log("Success:", o);
+    console.log("Created:", o._id);
+    
+    console.log("Approving...");
+    const o2 = await Order.findById(o._id);
+    o2.status = "approved";
+    await o2.save();
+    console.log("Approved successfully!");
   } catch (err) {
     console.error("Full Error:", err);
     console.error("Stack:", err.stack);
